@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "bu.h"
 
+//used as the main for entire bu
 
 int main() {
   bigunsigned a,b,c;
@@ -14,7 +16,7 @@ int main() {
   bu_dbg_printf(&a);
 
   bu_add(&c, &a, &b);
- 
+
   bu_dbg_printf(&c);
   return 0;
 }

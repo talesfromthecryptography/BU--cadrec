@@ -1,5 +1,6 @@
 #include <string.h> // for memset, etc.
 #include <stdio.h>  // for printf
+#include <inttypes.h>
 
 #include "bu.h"
 
@@ -45,14 +46,14 @@ void bu_add(bigunsigned *a_ptr, bigunsigned *b_ptr, bigunsigned *c_ptr) {
   uint8_t carry = 0;
   uint64_t nxt;
   uint16_t cnt = 0;
-  uint16_t min_used = b_ptr->used <= c_ptr->used 
+  uint16_t min_used = b_ptr->used <= c_ptr->used
                       ? b_ptr->used : c_ptr->used;
   uint8_t  b_dig = b_ptr->base;
   uint8_t  c_dig = c_ptr->base;
   uint8_t  a_dig = 0;
 
   while (cnt < min_used) {
-    nxt = ((uint64_t)b_ptr->digit[b_dig++]) 
+    nxt = ((uint64_t)b_ptr->digit[b_dig++])
           + (uint64_t)(c_ptr->digit[c_dig++]) + carry;
     carry = 0 != (nxt&0x100000000);
     a_ptr->digit[a_dig++] = (uint32_t)nxt;
@@ -69,7 +70,7 @@ void bu_add(bigunsigned *a_ptr, bigunsigned *b_ptr, bigunsigned *c_ptr) {
   while (cnt < b_ptr->used) {
     a_ptr->digit[a_dig++] = b_ptr->digit[b_dig++];
     cnt++;
-  }  
+  }
 
   while (cnt < c_ptr->used && carry) {
     nxt = ((uint64_t)c_ptr->digit[c_dig++]) + carry;
@@ -92,6 +93,7 @@ void bu_add(bigunsigned *a_ptr, bigunsigned *b_ptr, bigunsigned *c_ptr) {
   a_ptr->base = 0;
   a_ptr->used = cnt;
 }
+
 
 // return the length in bits (should always be less or equal to 32*a->used)
 uint16_t bu_len(bigunsigned *a_ptr) {
@@ -119,15 +121,31 @@ void bu_readhex(bigunsigned * a_ptr, char *s) {
 
   unsigned pos = 0;
   char *s_ptr = s;
-  while (*s_ptr && pos < BU_MAX_HEX) {
-    a_ptr->digit[pos>>3] |= (((uint32_t)hex2bin(*s_ptr)) << ((pos & 0x7)<<2));
+  unsigned end = strlen(s_ptr) - 1;
+
+  for (int i = end; i >= 0; --i) {
+    if(*s_ptr == ' ') continue;
+    //printf("%c", s_ptr[i]);
+    a_ptr->digit[(pos)>>3] |= (((uint32_t)hex2bin(s_ptr[i])) << ((pos & 0x7) << 2));
+    pos++;
+}
+
+  /*while (*s_ptr && pos < BU_MAX_HEX) {
+    if(*s_ptr == ' ') {
+      s_ptr++;
+      continue;
+    }
+
+
+    a_ptr->digit[(pos)>>3] |= (((uint32_t)hex2bin(*s_ptr)) << ((pos & 0x7) << 2));
     pos++;
     s_ptr++;
-  }
+  }*/
+
   a_ptr->used = (pos>>3) + ((pos&0x7)!=0);
 }
 
-// 
+//
 void bu_dbg_printf(bigunsigned *a_ptr) {
   printf("Used %x\n", a_ptr->used);
   printf("Base %x\n", a_ptr->base);
